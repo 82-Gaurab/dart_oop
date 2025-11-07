@@ -37,7 +37,13 @@ abstract class BankAccount {
 class SavingAccount extends BankAccount {
   int withdrawalTime = 0;
 
-  SavingAccount(super._accHolder, super._accNo, super._balance);
+  SavingAccount(super._accHolder, super._accNo, super._balance) {
+    if (_balance < 500) {
+      print("Minimum balance for saving account must be 500");
+      _balance = 0;
+      return;
+    }
+  }
 
   @override
   void deposit(double amount) {
@@ -47,19 +53,26 @@ class SavingAccount extends BankAccount {
   @override
   void withdraw(double amount) {
     if (withdrawalTime < 3) {
-      super.setBalance = _balance - amount;
-      withdrawalTime++;
-    } else {
       print("You have reached your withdrawal limit for month");
+    } else {
+      if (_balance - amount < 500) {
+        print("The balance cannot exceed minimum requirement which is 500");
+        return;
+      } else {
+        super.setBalance = _balance - amount;
+        withdrawalTime++;
+      }
     }
   }
 
   double calculateInterest() {
-    return 0.02 * getBalance;
+    return 0.02 * 12 * getBalance;
   }
 }
 
 class CheckingAccount extends BankAccount {
+  static int overdraft = 35;
+
   CheckingAccount(super._accHolder, super._accNo, super._balance);
 
   @override
@@ -69,16 +82,19 @@ class CheckingAccount extends BankAccount {
 
   @override
   void withdraw(double amount) {
-    if (_balance - amount < 500) {
-      print("The balance cannot exceed minimum requirement which is 500");
-      return;
+    if (_balance - amount < 0) {
+      super.setBalance = _balance - (amount + overdraft);
+      print("Balanced below 0 -> overdraft added");
     }
-    super.setBalance = _balance - amount;
   }
 }
 
 class PremiumAccount extends BankAccount {
-  PremiumAccount(super._accHolder, super._accNo, super._balance);
+  PremiumAccount(super._accHolder, super._accNo, super._balance) {
+    if (_balance < 10000) {
+      print("Minimum balance for premium account must be 10000");
+    }
+  }
 
   @override
   void deposit(double amount) {
@@ -88,13 +104,13 @@ class PremiumAccount extends BankAccount {
   @override
   void withdraw(double amount) {
     if (_balance - amount < 10000) {
-      print("The balance cannot exceed minimum requirement which is 500");
+      print("The balance cannot exceed minimum requirement which is 10000");
       return;
     }
     super.setBalance = _balance - amount;
   }
 
   double calculateInterest() {
-    return 0.05 * getBalance;
+    return 0.05 * 12 * getBalance;
   }
 }

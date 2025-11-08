@@ -3,6 +3,8 @@ abstract class BankAccount {
   String _accHolder;
   double _balance;
 
+  List transactionHistory = [];
+
   BankAccount(this._accHolder, this._accNo, this._balance);
 
   void withdraw(double amount);
@@ -32,15 +34,22 @@ abstract class BankAccount {
   set setBalance(double newBalance) {
     _balance = newBalance;
   }
+
+  void displayTransactionHistory();
 }
 
-class SavingAccount extends BankAccount {
+abstract class InterestBearing {
+  double calculateAnnualInterest();
+  double calculateMonthlyInterest();
+}
+
+class SavingAccount extends BankAccount implements InterestBearing {
   int withdrawalTime = 0;
 
   SavingAccount(super._accHolder, super._accNo, super._balance) {
     if (_balance < 500) {
       print("Minimum balance for saving account must be 500");
-      _balance = 0;
+      super._balance = 0;
       return;
     }
   }
@@ -48,11 +57,12 @@ class SavingAccount extends BankAccount {
   @override
   void deposit(double amount) {
     super.setBalance = _balance + amount;
+    super.transactionHistory.add({"action": "Deposit", "amount": amount});
   }
 
   @override
   void withdraw(double amount) {
-    if (withdrawalTime < 3) {
+    if (withdrawalTime == 3) {
       print("You have reached your withdrawal limit for month");
     } else {
       if (_balance - amount < 500) {
@@ -61,12 +71,26 @@ class SavingAccount extends BankAccount {
       } else {
         super.setBalance = _balance - amount;
         withdrawalTime++;
+        super.transactionHistory.add({"action": "Withdraw", "amount": amount});
       }
     }
   }
 
-  double calculateInterest() {
+  @override
+  double calculateAnnualInterest() {
     return 0.02 * 12 * getBalance;
+  }
+
+  @override
+  double calculateMonthlyInterest() {
+    return 0.02 * getBalance;
+  }
+
+  @override
+  void displayTransactionHistory() {
+    for (var detail in super.transactionHistory) {
+      print(detail);
+    }
   }
 }
 
@@ -78,6 +102,7 @@ class CheckingAccount extends BankAccount {
   @override
   void deposit(double amount) {
     super.setBalance = _balance + amount;
+    super.transactionHistory.add({"action": "Deposit", "amount": amount});
   }
 
   @override
@@ -85,20 +110,32 @@ class CheckingAccount extends BankAccount {
     if (_balance - amount < 0) {
       super.setBalance = _balance - (amount + overdraft);
       print("Balanced below 0 -> overdraft added");
+    } else {
+      super.setBalance = _balance - (amount + overdraft);
+    }
+    super.transactionHistory.add({"action": "Withdraw", "amount": amount});
+  }
+
+  @override
+  void displayTransactionHistory() {
+    for (var detail in super.transactionHistory) {
+      print(detail);
     }
   }
 }
 
-class PremiumAccount extends BankAccount {
+class PremiumAccount extends BankAccount implements InterestBearing {
   PremiumAccount(super._accHolder, super._accNo, super._balance) {
     if (_balance < 10000) {
       print("Minimum balance for premium account must be 10000");
+      super._balance = 0;
     }
   }
 
   @override
   void deposit(double amount) {
     super.setBalance = _balance + amount;
+    super.transactionHistory.add({"action": "Deposit", "amount": amount});
   }
 
   @override
@@ -108,9 +145,56 @@ class PremiumAccount extends BankAccount {
       return;
     }
     super.setBalance = _balance - amount;
+    super.transactionHistory.add({"action": "Withdraw", "amount": amount});
   }
 
-  double calculateInterest() {
+  @override
+  double calculateAnnualInterest() {
     return 0.05 * 12 * getBalance;
+  }
+
+  @override
+  double calculateMonthlyInterest() {
+    return 0.05 * getBalance;
+  }
+
+  @override
+  void displayTransactionHistory() {
+    for (var detail in super.transactionHistory) {
+      print(detail);
+    }
+  }
+}
+
+class StudentAccount extends BankAccount {
+  static final limit = 5000;
+  StudentAccount(super.accHolder, super.accNo, super.balance);
+
+  @override
+  void deposit(double amount) {
+    if (_balance + amount > limit) {
+      print("Maximum limit is $limit");
+      print("Can not deposit");
+      return;
+    }
+    super.setBalance = _balance + amount;
+    super.transactionHistory.add({"action": "Deposit", "amount": amount});
+  }
+
+  @override
+  void withdraw(double amount) {
+    if (_balance - amount < 0) {
+      print("The balance cannot exceed minimum requirement which is 0");
+      return;
+    }
+    super.setBalance = _balance - amount;
+    super.transactionHistory.add({"action": "Withdraw", "amount": amount});
+  }
+
+  @override
+  void displayTransactionHistory() {
+    for (var detail in super.transactionHistory) {
+      print(detail);
+    }
   }
 }
